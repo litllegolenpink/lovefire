@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>爱心烟花</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      overflow: hidden;
+      height: 100vh;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let w, h;
+    function resize() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function random(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    class Particle {
+      constructor(x, y, angle, speed, color) {
+        this.x = x;
+        this.y = y;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.alpha = 1;
+        this.color = color;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.vy += 0.03; // gravity
+        this.alpha -= 0.01;
+      }
+      draw() {
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function heartShapeParticles(cx, cy, scale, count, color) {
+      const particles = [];
+      for (let i = 0; i < count; i++) {
+        let t = Math.PI * 2 * Math.random();
+        let x = 16 * Math.pow(Math.sin(t), 3);
+        let y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+        x *= scale;
+        y *= scale;
+        const angle = Math.atan2(y, x);
+        const speed = random(1, 4);
+        particles.push(new Particle(cx, cy, angle, speed, color));
+      }
+      return particles;
+    }
+
+    let particles = [];
+
+    function animate() {
+      requestAnimationFrame(animate);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+      ctx.fillRect(0, 0, w, h);
+
+      if (Math.random() < 0.03) {
+        const newParticles = heartShapeParticles(random(w * 0.3, w * 0.7), random(h * 0.3, h * 0.7), 8, 80, 'pink');
+        particles.push(...newParticles);
+      }
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.update();
+        p.draw();
+        if (p.alpha <= 0) particles.splice(i, 1);
+      }
+    }
+
+    animate();
+  </script>
+</body>
+</html>
